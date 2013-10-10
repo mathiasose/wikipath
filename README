@@ -1,6 +1,11 @@
 wikipath
 ========
 Just for fun, finds a path between two Wikipedia articles.
+Searches breadth-first, so it will probably be very slow, even for short paths.
+
+Will ask for a start article and a target article,
+then start traversing the links from the start page,
+trying to find the target article.
 
 Uses the [Wikipedia API Python library by Jonathan Goldsmith](https://github.com/goldsmith/Wikipedia).
 
