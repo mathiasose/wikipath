@@ -1,49 +1,63 @@
+# -*- coding: utf-8 -*-
 import wikipedia
 from collections import deque
 
 
 def main():
-    def params():
-        start = raw_input("Start article: ")
-        goal = raw_input("Goal article: ")
-        return start, goal
+    def userInput():
+        def verifyInput(prompt):
+            while True:
+                title = raw_input(prompt)
+                try:
+                    wikipedia.page(title).load()
+                except wikipedia.PageError:
+                    print "Not a page"
+                    continue
+                except wikipedia.DisambiguationError:
+                    print "Don't use disambiguation pages"
+                    continue
+                return title
 
-    def seek_path(start, goal):
+        start = verifyInput("Start article:\t")
+        target = verifyInput("Target article:\t")
+        return start, target
+
+    def seek(start, target):
         prev_table = dict()
         prev_table[start] = None
 
-        queue = deque()
-        queue.append(start)
-
-        def path(link, li):
+        def backtrace(link, li):
             li.append(link)
             prev = prev_table[link]
 
             if prev is None:
                 return li[::-1]
-            return path(prev, li)
+            return backtrace(prev, li)
 
-        i = 0
+        level = 0
+        queue = deque()
+        queue.append((start,0))
         while queue:
-            i += 1
-            #print "iteration", i, ",", len(queue), "links"
             current = queue.popleft()
-            # print current
+            if current[1] > level:
+                print
+                level = current[1]
+            print ".",
             try:
-                for link in wikipedia.page(current).links:
-                    #print link,
+                for link in wikipedia.page(current[0]).links:
                     if link not in prev_table.keys():
-                        prev_table[link] = current
-                        queue.append(link)
+                        prev_table[link] = current[0]
+                        queue.append((link, level+1))
 
-                    if link == goal:
-                        # print
-                        return path(link, [])
-                # print
-            except wikipedia.DisambiguationError:
+                    if link == target:
+                        return backtrace(link, [])
+            except wikipedia.DisambiguationError, wikipedia.PageError:
                 continue
-    start, goal = "Space Jam", "Adolf Hitler" #params()
-    print " -> ".join(seek_path(start, goal))
+        return ["No path found"]
+    start, target = userInput()
+    path = seek(start, target)
+    print
+    print " -> ".join(path)
 
 
 if __name__ == "__main__":
